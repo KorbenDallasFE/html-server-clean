@@ -15,5 +15,5 @@ COPY . .
 EXPOSE 3000
 
 # Команда запуска
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
 
