@@ -1,18 +1,19 @@
-# 1) Базовый образ: Node.js Alpine (маленький, быстрый)
-FROM node:18-alpine
+# Базовый образ
+FROM node:18
 
-# 2) Рабочая директория в контейнере
+# Рабочая директория в контейнере
 WORKDIR /app
 
-# 3) Копируем package.json & package-lock.json (или yarn.lock)
+# Копируем package.json и устанавливаем зависимости
 COPY package*.json ./
-
-# 4) Устанавливаем зависимости (production + dev для CI)
 RUN npm install
 
-# 5) Копируем весь проект
+# Копируем весь проект
 COPY . .
 
-# 6) По умолчанию запускаем index.js (например)
-CMD ["node", "index.js"]
+# Экспонируем порт
+EXPOSE 3000
+
+# Команда запуска
+CMD ["npm", "start"]
 

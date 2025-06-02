@@ -5,7 +5,8 @@
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "test": "jest",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "start": "node server.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
@@ -21,5 +22,13 @@
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "prettier": "^3.0.0"
-  }
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

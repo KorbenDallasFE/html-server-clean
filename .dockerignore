@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+__tests__
+*.test.*
+jest.config.js
+.github
+.idea
+
