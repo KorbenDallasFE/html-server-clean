@@ -1,13 +1,18 @@
-import http from 'http';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
 
-// Получаем абсолютный путь к текущей директории
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Для определения __dirname (в CommonJS он уже есть, но на всякий случай)
+const __dirname = path.resolve();
 
-// Убедимся, что директория logs существует
+// Импорт роутера
+const publishRouter = require('./routes/api/publish');
+
+const app = express();
+
+app.use(express.json()); // чтобы парсить JSON в POST-запросах
+
+// Проверяем и создаём папку logs
 const logDir = path.join(__dirname, 'logs');
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
@@ -18,20 +23,21 @@ const logFile = path.join(logDir, 'server.log');
 function logToFile(message) {
   const timestamp = new Date().toISOString();
   const logEntry = `[${timestamp}] ${message}\n`;
-
   fs.appendFileSync(logFile, logEntry);
 }
 
-function startServer() {
-  const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Hello World');
-    logToFile(`${req.method} ${req.url}`);
-  });
+// Middleware для логирования запросов
+app.use((req, res, next) => {
+  logToFile(`${req.method} ${req.url}`);
+  next();
+});
 
-  server.listen(3000, () => {
-    logToFile('Server is running on http://localhost:3000');
-  });
-}
+// Подключаем роут /api/publish
+app.use('/api/publish', publishRouter);
 
-startServer();
+// Запускаем сервер
+const PORT = 3000;
+app.listen(PORT, () => {
+  logToFile(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server listening on http://localhost:${PORT}`);
+});
