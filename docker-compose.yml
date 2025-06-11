@@ -2,17 +2,32 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"  # для прямого доступа снаружи
+      - "3000:3000"
     expose:
-      - "3000"       # для nginx
+      - "3000"
     depends_on:
       - redis
+      - postgres  # ← добавили зависимость от PostgreSQL
+    volumes:                     # ← вот это добавь
+      - .:/app
 
   redis:
     image: redis:alpine
     restart: unless-stopped
     volumes:
-      - redis-data:/data   # подключаем volume для сохранения данных Redis
+      - redis-data:/data
+
+  postgres:  # ← добавили этот блок
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: user         # логин
+      POSTGRES_PASSWORD: pass     # пароль
+      POSTGRES_DB: maindb         # имя базы
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
   nginx:
     image: nginx:stable-alpine
@@ -25,3 +40,4 @@ services:
 
 volumes:
   redis-data:
+  pgdata:     # ← добавили volume для PostgreSQL
