@@ -3,36 +3,29 @@ const { createClient } = require('redis');
 
 const CHANNEL = 'chat_channel';
 
-const client = createClient({
-    url: process.env.REDIS_URL, // 🔐 Не хардкодим, берём из переменной окружения
-});
+// ─── Создаём клиенты ──────────────────────────────────────────
+const redis          = createClient({ url: process.env.REDIS_URL });
+const redisPublisher = redis;              // тот же клиент для publish
+const redisSubscriber = redis.duplicate(); // отдельный для subscribe
 
-client.on('error', (err) => console.error('❌ Redis Client Error:', err));
+// ─── Универсальный init ──────────────────────────────────────
+async function initRedis() {
+    // подключаем оба клиента
+    await redis.connect();
+    await redisSubscriber.connect();
 
-// ⏳ Подключаем основной клиент и на лету создаём Pub/Sub клиентов
-const redis = (async () => {
-    try {
-        await client.connect();
-        console.log('✅ Redis connected');
+    console.log('✅ Redis connected');
 
-        // Подписка (subscriber) — отдельный клиент
-        const redisSubscriber = client.duplicate();
-        await redisSubscriber.connect();
+    // Подписываемся на канал и логируем входящие сообщения
+    await redisSubscriber.subscribe(CHANNEL, (message) => {
+        console.log(`📥 Message on ${CHANNEL}: ${message}`);
+        // здесь можно прокидывать WS/SSE
+    });
+}
 
-        // Подписываемся на канал
-        await redisSubscriber.subscribe(CHANNEL, (message) => {
-            console.log(`📥 Message received on ${CHANNEL}: ${message}`);
-            // 🔧 Можно расширить под WS, SSE и т.п.
-        });
-
-        return {
-            redisPublisher: client,
-            redisSubscriber,
-        };
-    } catch (err) {
-        console.error('🚨 Redis connection/setup failed:', err);
-        return null;
-    }
-})();
-
-module.exports = redis;
+module.exports = {
+    redis,
+    redisPublisher,
+    redisSubscriber,
+    initRedis,
+};
