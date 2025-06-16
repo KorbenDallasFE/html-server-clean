@@ -1,35 +1,122 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>ATIS Lookup</title></head><body>
-<div><h1>ATIS Lookup</h1>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>ATIS Lookup</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            margin: 0.3rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        pre {
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>ATIS Lookup</h1>
     <form id="form">
-        <input id="icao" placeholder="ICAO code" />
+        <label for="icao">ICAO code:</label>
+        <input
+                type="text"
+                id="icao"
+                placeholder="Enter ICAO code, e.g. KLAX"
+                autocomplete="off"
+        />
         <button type="submit">Get ATIS</button>
     </form>
-    <button id="save-btn" disabled>Save</button>
-    <button id="show-btn" disabled>Show Last 5</button>
+    <div>
+        <button id="save-btn" disabled>Save</button>
+        <button id="show-btn" disabled>Show Last 5</button>
+    </div>
     <pre id="result"></pre>
 </div>
+
 <script>
-    const f=document.getElementById('form'), i=document.getElementById('icao'), r=document.getElementById('result');
-    const s=document.getElementById('save-btn'), sh=document.getElementById('show-btn');
-    let last='';
-    f.addEventListener('submit',async e=>{
-        e.preventDefault(); last=i.value.trim().toUpperCase(); if(!last)return;
-        r.textContent='Loading…'; s.disabled=sh.disabled=true;
-        const res=await fetch(`/atis/${last}`);
-        if(!res.ok){ r.textContent=`Error ${res.status}`;return; }
-        const d=await res.json(); r.textContent=d.atis_raw;
-        s.disabled=sh.disabled=false;
+    const form = document.getElementById('form');
+    const input = document.getElementById('icao');
+    const result = document.getElementById('result');
+    const saveBtn = document.getElementById('save-btn');
+    const showBtn = document.getElementById('show-btn');
+
+    let lastCode = '';
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = input.value.trim().toUpperCase();
+        if (!code) return;
+        lastCode = code;
+        result.textContent = 'Loading…';
+        saveBtn.disabled = true;
+        showBtn.disabled = true;
+        try {
+            const res = await fetch(`/atis/${code}`);
+            if (!res.ok) {
+                result.textContent = `Server error: ${res.status} ${res.statusText}`;
+                return;
+            }
+            const data = await res.json();
+            result.textContent = data.atis_raw || 'No data';
+            saveBtn.disabled = false;
+            showBtn.disabled = false;
+        } catch (err) {
+            result.textContent = 'Error: ' + err.message;
+        }
     });
-    s.addEventListener('click',async()=>{
-        r.textContent='Saving…';
-        const res=await fetch(`/save-atis/${last}`,{method:'POST'});
-        r.textContent=res.ok?'✅ Saved':'❌ Save failed';
+
+    saveBtn.addEventListener('click', async () => {
+        result.textContent = 'Saving…';
+        const res = await fetch(`/save-atis/${lastCode}`, { method: 'POST' });
+        result.textContent = res.ok ? '✅ Saved' : '❌ Save failed';
     });
-    sh.addEventListener('click',async()=>{
-        r.textContent='Loading saved…';
-        const res=await fetch(`/saved-atis/${last}`);
-        const arr=await res.json();
-        r.textContent=arr.map(x=>`${new Date(x.saved_at).toLocaleString()}\n${x.atis_raw}`).join('\n\n');
+
+    showBtn.addEventListener('click', async () => {
+        result.textContent = 'Loading saved…';
+        const res = await fetch(`/saved-atis/${lastCode}`);
+        if (!res.ok) {
+            result.textContent = `Error loading history: ${res.status}`;
+            return;
+        }
+        const data = await res.json();
+        result.textContent = data
+            .map(x => `${new Date(x.saved_at).toLocaleString()}\n${x.atis_raw}`)
+            .join('\n\n');
     });
-</script></body></html>
+</script>
+</body>
+</html>
