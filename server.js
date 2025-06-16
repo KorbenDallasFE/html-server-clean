@@ -31,7 +31,7 @@ app.get('/ping-redis', async (req, res) => {
     await redis.set('ping', 'pong', { EX: 5 });
     const v = await redis.get('ping');
     res.send(`Redis says: ${v}`);
-  } catch (e) {
+  } catch {
     res.status(500).send('Redis error');
   }
 });
@@ -49,7 +49,7 @@ app.get('/atis/:icao', async (req,res)=>{
     const atis = Array.isArray(json) ? json[0]?.datis : json.atis;
     if (!atis) return res.status(404).json({error:'No ATIS'});
     res.json({atis_raw:atis});
-  } catch(err) {
+  } catch {
     res.status(500).json({error:'Fetch error'});
   }
 });
