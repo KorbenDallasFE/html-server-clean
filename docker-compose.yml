@@ -1,43 +1,20 @@
 services:
   app:
     build: .
-    ports:
-      - "3000:3000"
-    expose:
-      - "3000"
-    depends_on:
-      - redis
-      - postgres  # ← добавили зависимость от PostgreSQL
-    volumes:                     # ← вот это добавь
-      - .:/app
-
+    volumes: ['.:/app']
+    ports: ['3000:3000']
+    depends_on: ['redis','postgres']
   redis:
     image: redis:alpine
     restart: unless-stopped
-    volumes:
-      - redis-data:/data
-
-  postgres:  # ← добавили этот блок
+  postgres:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: user         # логин
-      POSTGRES_PASSWORD: pass     # пароль
-      POSTGRES_DB: maindb         # имя базы
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  nginx:
-    image: nginx:stable-alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - app
-
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: maindb
+    volumes: ['pgdata:/var/lib/postgresql/data']
+    ports: ['5432:5432']
 volumes:
-  redis-data:
-  pgdata:     # ← добавили volume для PostgreSQL
+  pgdata:
