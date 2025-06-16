@@ -1,2 +1,47 @@
-<h1>Hello from Tbilisi! Now we have: ATIS mssg can be here</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>ATIS Lookup</title>
+    <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<div class="container">
+    <h1>ATIS Lookup</h1>
+    <form id="form">
+        <label for="icao">ICAO code:</label>
+        <input
+                type="text"
+                id="icao"
+                placeholder="Enter ICAO code, e.g. klax"
+                autocomplete="off"
+        />
+        <button type="submit">Get ATIS</button>
+    </form>
+    <pre id="result"></pre>
+</div>
+<script>
+    const form = document.getElementById('form');
+    const input = document.getElementById('icao');
+    const result = document.getElementById('result');
 
+    form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const code = input.value.trim().toUpperCase();
+        if (!code) return;
+        result.textContent = 'Loading…';
+        try {
+            const res = await fetch(`/atis/${code}`);
+            if (!res.ok) {
+                result.textContent = `Server error: ${res.status} ${res.statusText}`;
+                return;
+            }
+            const data = await res.json();
+            result.textContent = data.atis_raw || 'No data';
+        } catch (err) {
+            result.textContent = 'Error: ' + err.message;
+        }
+    });
+</script>
+</body>
+</html>

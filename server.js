@@ -1,14 +1,18 @@
+// ---------------------- env setup ----------------------------
+require('dotenv').config(); // загружаем .env ПЕРЕД всем остальным
+
 // ---------------------- imports & setup ----------------------
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const { redis, redisPublisher, initRedis } = require('./redisClient'); // 🧠 Redis
+const pool = require('./db'); // 🐘 PostgreSQL pool
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ---------------------- middleware ---------------------------
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static('public'));
+app.use(express.static('public')); // статика (index.html, css и т.д.)
 
 // ------------------ sessionId cookie helper ------------------
 app.use((req, res, next) => {
@@ -49,6 +53,30 @@ app.post('/api/publish', async (req, res) => {
 
   await redisPublisher.publish(channel, message);
   res.send(`📤 Published to ${channel}`);
+});
+
+// ------------------- ATIS lookup route -----------------------
+app.get('/atis/:icao', async (req, res) => {
+  const icao = req.params.icao.toUpperCase(); // Приводим к верхнему регистру
+  try {
+    const { rows } = await pool.query(
+        `SELECT atis_raw 
+       FROM weather_reports 
+       WHERE icao_code = $1 
+       ORDER BY created_at DESC 
+       LIMIT 1`,
+        [icao]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'No ATIS data found' });
+    }
+
+    res.json({ atis_raw: rows[0].atis_raw });
+  } catch (err) {
+    console.error('❌ DB error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // --------------------- start server --------------------------
