@@ -21,17 +21,6 @@ Link: https://html-server-clean.onrender.com/
 - GitHub Actions
 - Render (хостинг)
 
-##  Быстрый запуск
-
-# Клонировать репозиторий
-```
-git clone https://github.com/yourname/atis-server.git
-cd atis-server
-```
-# Запустить с помощью Docker Compose
-```
-docker-compose up --build
-```
 ## Запросы через форму в браузере
 Отправить точный icao код любого крупного аэропорта США.
 Форма ввода не чувствительна к регистру, для удобства срочного запроса raw данных.
@@ -43,19 +32,3 @@ KMIA (Miami)
 KLAS (Las Vegas) 
 ...
 ```
-## Сервер будет доступен на 
-```
-http://localhost:3000
-```
-## Примеры запросов
-```
-Получить текущий ATIS:
-GET /atis/KSFO
-
-Сохранить снимок ATIS:
-POST /save-atis/KSFO
-
-Получить последние 5 сохранений:
-GET /saved-atis/KSFO
-```
-
