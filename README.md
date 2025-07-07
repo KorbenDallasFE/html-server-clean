@@ -25,10 +25,9 @@ Link: https://html-server-clean.onrender.com/
 Отправить точный icao код любого крупного аэропорта США.
 Форма ввода не чувствительна к регистру, для удобства срочного запроса raw данных.
 Примеры ICAO-кодов: 
-```
 KATL (Atlanta) 
 KLAX (Los Angeles) 
 KMIA (Miami) 
 KLAS (Las Vegas) 
 ...
-```
+
